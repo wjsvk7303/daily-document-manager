@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>일자별 문서 보관함</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -1437,8 +1438,10 @@
     </div>
 
     <script>
-        // Data storage key
-        const STORAGE_KEY = 'documents';
+        // Supabase client
+        const SUPABASE_URL = 'https://cuajqykpktquwqijzrfc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1YWpxeWtwa3RxdXdxaWp6cmZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzMzOTUsImV4cCI6MjA4NTkwOTM5NX0.tQw_4wpcjN_tvBiXVSwBvq5HoXqn51ES-t9GNexchzk';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // State
         let documents = [];
@@ -1638,53 +1641,51 @@
         let previousCategoryState = null;
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDocuments();
+        document.addEventListener('DOMContentLoaded', async () => {
+            showLoading('데이터 로딩 중...');
+            await loadDocuments();
             renderAll();
             setDefaultDates();
+            hideLoading();
         });
 
-        // Load documents from localStorage
-        function loadDocuments() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            documents = stored ? JSON.parse(stored) : [];
+        // Load documents from Supabase
+        async function loadDocuments() {
+            const { data, error } = await supabaseClient
+                .from('daily_doc')
+                .select('*')
+                .order('created_at', { ascending: false });
+            if (error) {
+                showToast('데이터 로딩 실패: ' + error.message, 'error');
+                return;
+            }
+            documents = (data || []).map(row => ({
+                id: row.id,
+                title: row.title,
+                content: row.content || '',
+                category: row.category || '',
+                status: row.status || '진행중',
+                images: row.images || [],
+                inlineImages: row.inline_images || {},
+                createdAt: row.created_at,
+                updatedAt: row.updated_at
+            }));
             buildSearchIndex();
         }
 
-        // Save documents to localStorage with quota error handling
-        function saveToStorage() {
-            try {
-                const data = JSON.stringify(documents);
-                localStorage.setItem(STORAGE_KEY, data);
-                return true;
-            } catch (e) {
-                if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
-                    // Calculate current usage for user feedback
-                    const usage = getStorageUsage();
-                    showToast(
-                        `저장 실패: 브라우저 저장 공간이 부족합니다. ` +
-                        `현재 사용량: ${usage}. ` +
-                        `불필요한 문서나 이미지를 삭제한 후 다시 시도하세요.`,
-                        'error'
-                    );
-                } else {
-                    showToast('저장 중 알 수 없는 오류가 발생했습니다: ' + e.message, 'error');
-                }
-                return false;
-            }
-        }
-
-        // Calculate current localStorage usage for this app
-        function getStorageUsage() {
-            try {
-                const data = localStorage.getItem(STORAGE_KEY) || '';
-                const bytes = new Blob([data]).size;
-                if (bytes < 1024) return bytes + ' B';
-                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-            } catch (e) {
-                return '측정 불가';
-            }
+        // Helper: convert JS doc object to DB row format
+        function docToRow(doc) {
+            return {
+                id: doc.id,
+                title: doc.title,
+                content: doc.content,
+                category: doc.category,
+                status: doc.status,
+                images: doc.images || [],
+                inline_images: doc.inlineImages || {},
+                created_at: doc.createdAt,
+                updated_at: doc.updatedAt
+            };
         }
 
         // Set default dates for filter
@@ -2082,57 +2083,56 @@
                 return;
             }
 
-            // ===== UX Enhancement: Loading State =====
             showLoading('문서 저장 중...');
-
-            // Simulate async operation for UX feedback
-            await new Promise(resolve => setTimeout(resolve, 300));
 
             const now = new Date().toISOString();
 
             if (id) {
                 // Update existing
+                const createdAt = dateValue ? new Date(dateValue).toISOString() : documents.find(d => d.id === id)?.createdAt || now;
+                const updatedDoc = { id, title, category, content, status, images: currentImages, inlineImages: currentInlineImages, createdAt, updatedAt: now };
+
+                const { error } = await supabaseClient
+                    .from('daily_doc')
+                    .update(docToRow(updatedDoc))
+                    .eq('id', id);
+
+                if (error) {
+                    hideLoading();
+                    showToast('문서 수정 실패: ' + error.message, 'error');
+                    return;
+                }
+
                 const index = documents.findIndex(d => d.id === id);
                 if (index !== -1) {
-                    documents[index] = {
-                        ...documents[index],
-                        title,
-                        category,
-                        content,
-                        status,
-                        images: currentImages,
-                        inlineImages: currentInlineImages,
-                        createdAt: dateValue ? new Date(dateValue).toISOString() : documents[index].createdAt,
-                        updatedAt: now
-                    };
-                    updateSearchIndexEntry(documents[index]);
-                    showToast('문서가 수정되었습니다.', 'success');
+                    documents[index] = updatedDoc;
+                    updateSearchIndexEntry(updatedDoc);
                 }
+                showToast('문서가 수정되었습니다.', 'success');
             } else {
                 // Create new
                 const newDoc = {
                     id: generateId(),
-                    title,
-                    category,
-                    content,
-                    status,
+                    title, category, content, status,
                     images: currentImages,
                     inlineImages: currentInlineImages,
                     createdAt: dateValue ? new Date(dateValue).toISOString() : now,
                     updatedAt: now
                 };
+
+                const { error } = await supabaseClient
+                    .from('daily_doc')
+                    .insert(docToRow(newDoc));
+
+                if (error) {
+                    hideLoading();
+                    showToast('문서 생성 실패: ' + error.message, 'error');
+                    return;
+                }
+
                 documents.push(newDoc);
                 updateSearchIndexEntry(newDoc);
                 showToast('새 문서가 생성되었습니다.', 'success');
-            }
-
-            if (!saveToStorage()) {
-                // Storage save failed (quota exceeded). Revert in-memory change.
-                // Reload from storage to get consistent state.
-                loadDocuments();
-                renderAll();
-                hideLoading();
-                return;
             }
 
             hideLoading();
@@ -2142,7 +2142,6 @@
 
         // Delete document
         async function deleteDocument(id) {
-            // ===== UX Enhancement: Custom Confirm Dialog =====
             const confirmed = await customConfirm(
                 '이 문서를 삭제하시겠습니까? 삭제된 문서는 복구할 수 없습니다.',
                 '문서 삭제 확인'
@@ -2151,11 +2150,20 @@
             if (!confirmed) return;
 
             showLoading('문서 삭제 중...');
-            await new Promise(resolve => setTimeout(resolve, 200));
+
+            const { error } = await supabaseClient
+                .from('daily_doc')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                hideLoading();
+                showToast('문서 삭제 실패: ' + error.message, 'error');
+                return;
+            }
 
             documents = documents.filter(d => d.id !== id);
             removeSearchIndexEntry(id);
-            saveToStorage();
             renderAll();
 
             hideLoading();
@@ -2461,7 +2469,6 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // ===== UX Enhancement: Confirm before import =====
             const confirmed = await customConfirm(
                 `파일 "${file.name}"을 가져오시겠습니까?\n중복되지 않는 문서만 추가됩니다.`,
                 '데이터 가져오기 확인'
@@ -2482,21 +2489,35 @@
                         throw new Error('Invalid format');
                     }
 
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    // Convert imported docs to DB row format and upsert
+                    const rows = importedDocs.map(doc => ({
+                        id: doc.id,
+                        title: doc.title,
+                        content: doc.content || '',
+                        category: doc.category || '',
+                        status: doc.status || '진행중',
+                        images: doc.images || [],
+                        inline_images: doc.inlineImages || {},
+                        created_at: doc.createdAt || new Date().toISOString(),
+                        updated_at: doc.updatedAt || new Date().toISOString()
+                    }));
 
-                    // Merge with existing (avoid duplicates by ID)
-                    const existingIds = new Set(documents.map(d => d.id));
-                    const newDocs = importedDocs.filter(d => !existingIds.has(d.id));
-                    documents = [...documents, ...newDocs];
+                    const { error } = await supabaseClient
+                        .from('daily_doc')
+                        .upsert(rows, { onConflict: 'id' });
 
-                    // Rebuild search index for newly imported docs
-                    newDocs.forEach(doc => updateSearchIndexEntry(doc));
+                    if (error) {
+                        hideLoading();
+                        showToast('데이터 가져오기 실패: ' + error.message, 'error');
+                        return;
+                    }
 
-                    saveToStorage();
+                    // Reload all documents from DB
+                    await loadDocuments();
                     renderAll();
 
                     hideLoading();
-                    showToast(`${newDocs.length}개의 새로운 문서를 가져왔습니다.`, 'success');
+                    showToast(`${importedDocs.length}개의 문서를 가져왔습니다.`, 'success');
                 } catch (err) {
                     hideLoading();
                     showToast('파일 형식이 올바르지 않습니다. JSON 파일을 확인해주세요.', 'error');
@@ -2633,9 +2654,22 @@
             document.getElementById('categoryModal').classList.remove('active');
         }
 
-        function renameCategory(oldName) {
+        async function renameCategory(oldName) {
             const newName = prompt('새 카테고리 이름:', oldName);
             if (!newName || newName === oldName) return;
+
+            showLoading('카테고리 변경 중...');
+
+            const { error } = await supabaseClient
+                .from('daily_doc')
+                .update({ category: newName })
+                .eq('category', oldName);
+
+            if (error) {
+                hideLoading();
+                showToast('카테고리 변경 실패: ' + error.message, 'error');
+                return;
+            }
 
             documents.forEach(doc => {
                 if (doc.category === oldName) {
@@ -2643,14 +2677,31 @@
                 }
             });
 
-            saveToStorage();
+            hideLoading();
             renderAll();
             openCategoryManager();
             showToast('카테고리 이름이 변경되었습니다.', 'success');
         }
 
-        function deleteCategory(name) {
-            if (!confirm(`"${name}" 카테고리의 모든 문서를 "미분류"로 변경하시겠습니까?`)) return;
+        async function deleteCategory(name) {
+            const confirmed = await customConfirm(
+                `"${name}" 카테고리의 모든 문서를 "미분류"로 변경하시겠습니까?`,
+                '카테고리 삭제 확인'
+            );
+            if (!confirmed) return;
+
+            showLoading('카테고리 삭제 중...');
+
+            const { error } = await supabaseClient
+                .from('daily_doc')
+                .update({ category: '' })
+                .eq('category', name);
+
+            if (error) {
+                hideLoading();
+                showToast('카테고리 삭제 실패: ' + error.message, 'error');
+                return;
+            }
 
             documents.forEach(doc => {
                 if (doc.category === name) {
@@ -2658,7 +2709,7 @@
                 }
             });
 
-            saveToStorage();
+            hideLoading();
             renderAll();
             openCategoryManager();
             showToast('카테고리가 삭제되었습니다.');
