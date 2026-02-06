@@ -1,0 +1,3009 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일자별 문서 보관함</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4a90d9;
+            --primary-dark: #357abd;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #e1e8ed;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .header-controls .stat-item {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+
+        .header-controls .stat-item strong {
+            color: white;
+            font-weight: 700;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sidebar {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 8px;
+        }
+
+        .filter-section {
+            margin-bottom: 25px;
+        }
+
+        .filter-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .filter-section input,
+        .filter-section select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .filter-section input:focus,
+        .filter-section select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
+        }
+
+        .category-list {
+            list-style: none;
+        }
+
+        .category-list li {
+            padding: 10px 12px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-list li:hover {
+            background: var(--bg);
+        }
+
+        .category-list li.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .category-count {
+            background: rgba(0,0,0,0.1);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .toolbar {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #219a52;
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .document-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 4px solid var(--primary);
+        }
+
+        .document-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .document-card.selected {
+            border-color: var(--success);
+            background: #f0fff4;
+        }
+
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .document-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            word-break: break-word;
+        }
+
+        .document-category {
+            background: var(--primary);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .document-preview {
+            color: var(--text-light);
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .document-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-light);
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3rem;
+            color: var(--text);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 5px;
+        }
+
+        .modal-close:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 250px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 500px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .stat-item strong {
+            color: var(--primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .calendar-view {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            padding: 10px;
+            color: var(--text-light);
+            font-size: 12px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .calendar-day:hover {
+            background: var(--bg);
+        }
+
+        .calendar-day.other-month {
+            color: var(--border);
+        }
+
+        .calendar-day.today {
+            background: var(--primary);
+            color: white;
+        }
+
+        .calendar-day.has-docs::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .calendar-day.selected {
+            border: 2px solid var(--primary);
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 5px;
+        }
+
+        .view-toggle button {
+            padding: 8px 15px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .view-toggle button:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .view-toggle button:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .view-toggle button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: var(--text);
+            color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            z-index: 2000;
+            animation: toastIn 0.3s ease;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            min-width: 150px;
+            z-index: 100;
+            display: none;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-menu button {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .dropdown-menu button:hover {
+            background: var(--bg);
+        }
+
+        .word-count {
+            text-align: right;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        /* Word Find Styles */
+        .find-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 15px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .find-bar input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .find-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .find-nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .find-nav button {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .find-nav button:hover {
+            background: var(--border);
+        }
+
+        .find-nav button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .find-count {
+            font-size: 13px;
+            color: var(--text-light);
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+
+        .highlight.current {
+            background-color: #ffc107;
+            outline: 2px solid #ff9800;
+        }
+
+        /* Image Upload Styles */
+        .image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(74, 144, 217, 0.05);
+        }
+
+        .image-upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(74, 144, 217, 0.1);
+        }
+
+        .image-upload-icon {
+            font-size: 32px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .image-upload-text {
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .image-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .image-preview-item .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 24px;
+            height: 24px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .image-preview-item:hover .remove-image {
+            opacity: 1;
+        }
+
+        .view-images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .view-image-item {
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .view-image-item:hover {
+            transform: scale(1.02);
+        }
+
+        .view-image-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Image Lightbox */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 36px;
+            cursor: pointer;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            padding: 15px 20px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .lightbox-nav:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .lightbox-prev {
+            left: 20px;
+        }
+
+        .lightbox-next {
+            right: 20px;
+        }
+
+        .image-count-badge {
+            background: var(--success);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+
+        /* Inline Image Styles */
+        .inline-images-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .inline-images-preview.has-images {
+            display: block;
+        }
+
+        .inline-images-preview h4 {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .inline-image-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .inline-image-item {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+        }
+
+        .inline-image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .inline-image-item .inline-img-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 9px;
+            text-align: center;
+            padding: 2px;
+        }
+
+        .inline-image-item .remove-inline-img {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .inline-image-item:hover .remove-inline-img {
+            opacity: 1;
+        }
+
+        .view-inline-image {
+            display: block;
+            max-width: 100%;
+            margin: 15px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .view-inline-image:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .paste-hint {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        /* Loading Spinner */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-text {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Confirm Dialog */
+        .confirm-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+        }
+
+        .confirm-dialog-overlay.active {
+            display: flex;
+        }
+
+        .confirm-dialog {
+            background: var(--card-bg);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            padding: 0;
+            animation: modalIn 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .confirm-dialog-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .confirm-dialog-header h3 {
+            font-size: 1.2rem;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .confirm-dialog-body {
+            padding: 20px;
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .confirm-dialog-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 10px;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            font-size: 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0,0,0,0.85);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .tooltip:hover::before,
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        /* Search highlight in cards */
+        .search-highlight {
+            background-color: #fff3cd;
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+
+        /* Focus visible for accessibility */
+        *:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* Skip to main content link (accessibility) */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 0 0 8px 0;
+            z-index: 10000;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Responsive touch targets (mobile) */
+        @media (max-width: 768px) {
+            .btn {
+                min-height: 44px;
+                padding: 12px 20px;
+            }
+
+            .btn-sm {
+                min-height: 44px;
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            .category-list li {
+                padding: 14px 12px;
+                min-height: 44px;
+            }
+
+            .calendar-day {
+                min-height: 44px;
+                font-size: 16px;
+            }
+
+            .modal {
+                max-width: 100%;
+                margin: 10px;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                max-width: 100%;
+            }
+
+            .header-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* Improved empty state */
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state-actions {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">본문으로 건너뛰기</a>
+    <div class="container">
+        <header role="banner">
+            <h1>일자별 문서 보관함</h1>
+            <div class="header-controls" role="status" aria-live="polite">
+                <span class="stat-item">총 <strong id="totalDocs">0</strong>개의 문서</span>
+                <span class="stat-item" aria-hidden="true">|</span>
+                <span class="stat-item"><strong id="totalCategories">0</strong>개의 카테고리</span>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <aside class="sidebar" role="complementary" aria-label="필터 및 카테고리">
+                <div class="filter-section">
+                    <h3>날짜 필터</h3>
+                    <label for="startDate">시작일</label>
+                    <input type="date" id="startDate" aria-label="시작일 선택">
+                    <label for="endDate" style="margin-top: 10px;">종료일</label>
+                    <input type="date" id="endDate" aria-label="종료일 선택">
+                    <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 10px;" onclick="clearDateFilter()" aria-label="날짜 필터 초기화">
+                        날짜 필터 초기화
+                    </button>
+                </div>
+
+                <div class="filter-section">
+                    <h3>카테고리</h3>
+                    <ul class="category-list" id="categoryList" role="listbox" aria-label="카테고리 목록">
+                        <li class="active" data-category="all" role="option" aria-selected="true" tabindex="0">
+                            <span>전체</span>
+                            <span class="category-count" id="allCount">0</span>
+                        </li>
+                    </ul>
+                    <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 10px;" onclick="openCategoryManager()" aria-label="카테고리 관리">
+                        카테고리 관리
+                    </button>
+                </div>
+            </aside>
+
+            <div class="main-content" id="main-content" role="main">
+                <div class="toolbar" role="toolbar" aria-label="문서 작업 도구">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="문서 검색 (제목, 내용)..." oninput="debouncedFilter()" aria-label="문서 검색">
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="view-toggle" role="group" aria-label="보기 모드 선택">
+                            <button class="active" onclick="setView('grid')" id="gridViewBtn" aria-pressed="true" aria-label="목록 보기">목록</button>
+                            <button onclick="setView('calendar')" id="calendarViewBtn" aria-pressed="false" aria-label="캘린더 보기">캘린더</button>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary tooltip" data-tooltip="데이터 내보내기/가져오기" onclick="toggleDropdown('exportMenu')" aria-expanded="false" aria-haspopup="true" aria-controls="exportMenu">
+                                내보내기/가져오기
+                            </button>
+                            <div class="dropdown-menu" id="exportMenu" role="menu">
+                                <button onclick="exportData()" role="menuitem">JSON으로 내보내기</button>
+                                <button onclick="document.getElementById('importFile').click()" role="menuitem">JSON 가져오기</button>
+                                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" aria-label="JSON 파일 선택">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary tooltip" data-tooltip="새 문서 작성 (Ctrl+N)" onclick="openModal()" aria-label="새 문서 작성">
+                            + 새 문서
+                        </button>
+                    </div>
+                </div>
+
+                <div id="gridView" class="documents-grid" role="list" aria-label="문서 목록"></div>
+
+                <div id="calendarView" class="calendar-view" style="display: none;">
+                    <div class="calendar-header">
+                        <h3 id="calendarTitle">2024년 1월</h3>
+                        <div class="calendar-nav">
+                            <button class="btn btn-secondary btn-sm" onclick="prevMonth()">◀ 이전</button>
+                            <button class="btn btn-secondary btn-sm" onclick="goToday()">오늘</button>
+                            <button class="btn btn-secondary btn-sm" onclick="nextMonth()">다음 ▶</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Modal -->
+    <div class="modal-overlay" id="documentModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">새 문서 작성</h2>
+                <button class="modal-close" onclick="closeModal()" aria-label="모달 닫기">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="documentId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="docTitle">제목 *</label>
+                        <input type="text" id="docTitle" placeholder="문서 제목을 입력하세요" required aria-required="true">
+                    </div>
+                    <div class="form-group">
+                        <label for="docCategory">카테고리</label>
+                        <input type="text" id="docCategory" list="categoryOptions" placeholder="카테고리 입력 또는 선택" aria-label="카테고리 선택">
+                        <datalist id="categoryOptions"></datalist>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="docDate">작성일</label>
+                        <input type="date" id="docDate" aria-label="작성일 선택">
+                    </div>
+                    <div class="form-group">
+                        <label for="docStatus">문서 상태</label>
+                        <select id="docStatus" aria-label="문서 상태 선택">
+                            <option value="active">활성</option>
+                            <option value="archived">보관</option>
+                            <option value="important">중요</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="docContent">내용</label>
+                    <textarea id="docContent" placeholder="문서 내용을 입력하세요... (Ctrl+V로 캡처 이미지 붙여넣기 가능)" oninput="updateWordCount()" aria-label="문서 내용"></textarea>
+                    <div class="word-count">
+                        <span id="wordCount">0</span>자 / <span id="lineCount">0</span>줄
+                    </div>
+                    <div class="paste-hint">💡 캡처한 이미지를 Ctrl+V로 붙여넣으면 현재 커서 위치에 삽입됩니다</div>
+                    <div class="inline-images-preview" id="inlineImagesPreview">
+                        <h4>📎 본문 내 삽입된 이미지</h4>
+                        <div class="inline-image-list" id="inlineImageList"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="imageInput">이미지 첨부</label>
+                    <div class="image-upload-area" id="imageUploadArea" onclick="document.getElementById('imageInput').click()" role="button" tabindex="0" aria-label="이미지 업로드 영역">
+                        <div class="image-upload-icon" aria-hidden="true">🖼️</div>
+                        <div class="image-upload-text">클릭하거나 이미지를 드래그하여 업로드<br>(PNG, JPG, GIF, WebP)</div>
+                    </div>
+                    <input type="file" id="imageInput" accept="image/*" multiple style="display:none" onchange="handleImageUpload(event)" aria-label="이미지 파일 선택">
+                    <div class="image-preview-grid" id="imagePreviewGrid" role="list" aria-label="첨부된 이미지"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()" aria-label="취소">취소</button>
+                <button class="btn btn-primary" onclick="saveDocument()" aria-label="문서 저장">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Document Modal -->
+    <div class="modal-overlay" id="viewModal" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="viewTitle">문서 보기</h2>
+                <button class="modal-close" onclick="closeViewModal()" aria-label="모달 닫기">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <span class="document-category" id="viewCategory"></span>
+                    <span style="margin-left: 10px; color: var(--text-light); font-size: 13px;" id="viewMeta"></span>
+                </div>
+                <div class="find-bar" role="search" aria-label="문서 내 검색">
+                    <input type="text" id="findInput" placeholder="문서 내 단어 찾기 (Ctrl+F)" oninput="performFind()" aria-label="검색어 입력">
+                    <span class="find-count" id="findCount" aria-live="polite">0 / 0</span>
+                    <div class="find-nav">
+                        <button onclick="findPrev()" title="이전 (Shift+Enter)" aria-label="이전 검색 결과">▲</button>
+                        <button onclick="findNext()" title="다음 (Enter)" aria-label="다음 검색 결과">▼</button>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="clearFind()" aria-label="검색 초기화">초기화</button>
+                </div>
+                <div id="viewContent" style="white-space: pre-wrap; line-height: 1.8; font-size: 15px;" role="article"></div>
+                <div class="view-images-grid" id="viewImagesGrid" role="list" aria-label="첨부 이미지"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="deleteFromView()" aria-label="문서 삭제">삭제</button>
+                <button class="btn btn-primary" onclick="editFromView()" aria-label="문서 수정">수정</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox(event)" role="dialog" aria-modal="true" aria-label="이미지 확대 보기">
+        <button class="lightbox-close" onclick="closeLightbox()" aria-label="이미지 닫기">&times;</button>
+        <button class="lightbox-nav lightbox-prev" onclick="event.stopPropagation(); lightboxPrev()" aria-label="이전 이미지">◀</button>
+        <img id="lightboxImage" src="" alt="확대된 이미지">
+        <button class="lightbox-nav lightbox-next" onclick="event.stopPropagation(); lightboxNext()" aria-label="다음 이미지">▶</button>
+    </div>
+
+    <!-- Category Manager Modal -->
+    <div class="modal-overlay" id="categoryModal" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="categoryModalTitle">카테고리 관리</h2>
+                <button class="modal-close" onclick="closeCategoryModal()" aria-label="모달 닫기">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="categoryManagerList"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCategoryModal()" aria-label="닫기">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="assertive" aria-label="로딩 중">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loadingText">처리 중...</div>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Dialog -->
+    <div class="confirm-dialog-overlay" id="confirmDialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+        <div class="confirm-dialog">
+            <div class="confirm-dialog-header">
+                <h3 id="confirmTitle">확인</h3>
+            </div>
+            <div class="confirm-dialog-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="confirm-dialog-footer">
+                <button class="btn btn-secondary" id="confirmCancelBtn" aria-label="취소">취소</button>
+                <button class="btn btn-danger" id="confirmOkBtn" aria-label="확인">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage key
+        const STORAGE_KEY = 'documents';
+
+        // State
+        let documents = [];
+        let currentCategory = 'all';
+        let currentView = 'grid';
+        let calendarDate = new Date();
+        let currentViewDocId = null;
+        let currentImages = []; // For attached images
+        let currentInlineImages = {}; // For inline pasted images {marker: imageData}
+        let inlineImageCounter = 0;
+        let lightboxImages = [];
+        let lightboxIndex = 0;
+        let confirmCallback = null; // For custom confirm dialog
+        let focusTrapElements = []; // For modal focus trap
+
+        // ===== UX Enhancement: Loading Overlay =====
+        function showLoading(message = '처리 중...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = document.getElementById('loadingText');
+            text.textContent = message;
+            overlay.classList.add('active');
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('active');
+        }
+
+        // ===== UX Enhancement: Custom Confirm Dialog =====
+        function customConfirm(message, title = '확인') {
+            return new Promise((resolve) => {
+                const dialog = document.getElementById('confirmDialog');
+                const titleEl = document.getElementById('confirmTitle');
+                const messageEl = document.getElementById('confirmMessage');
+                const okBtn = document.getElementById('confirmOkBtn');
+                const cancelBtn = document.getElementById('confirmCancelBtn');
+
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                dialog.classList.add('active');
+
+                // Focus on cancel button initially (safer default)
+                cancelBtn.focus();
+
+                // Setup focus trap
+                setupFocusTrap(dialog);
+
+                const cleanup = () => {
+                    dialog.classList.remove('active');
+                    okBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                    document.removeEventListener('keydown', escapeHandler);
+                };
+
+                const escapeHandler = (e) => {
+                    if (e.key === 'Escape') {
+                        cleanup();
+                        resolve(false);
+                    }
+                };
+
+                okBtn.onclick = () => {
+                    cleanup();
+                    resolve(true);
+                };
+
+                cancelBtn.onclick = () => {
+                    cleanup();
+                    resolve(false);
+                };
+
+                document.addEventListener('keydown', escapeHandler);
+            });
+        }
+
+        // ===== UX Enhancement: Focus Trap for Modals =====
+        function setupFocusTrap(modalElement) {
+            const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+            const focusableElements = modalElement.querySelectorAll(focusableSelectors);
+            const firstFocusable = focusableElements[0];
+            const lastFocusable = focusableElements[focusableElements.length - 1];
+
+            const trapFocus = (e) => {
+                if (e.key !== 'Tab') return;
+
+                if (e.shiftKey) {
+                    if (document.activeElement === firstFocusable) {
+                        e.preventDefault();
+                        lastFocusable.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastFocusable) {
+                        e.preventDefault();
+                        firstFocusable.focus();
+                    }
+                }
+            };
+
+            modalElement.addEventListener('keydown', trapFocus);
+        }
+
+        // ===== UX Enhancement: Search Highlight in Cards =====
+        function highlightText(text, searchTerm) {
+            if (!searchTerm) return escapeHtml(text);
+
+            const escapedText = escapeHtml(text);
+            const escapedTerm = escapeHtml(searchTerm);
+            const regex = new RegExp(`(${escapedTerm})`, 'gi');
+
+            return escapedText.replace(regex, '<span class="search-highlight">$1</span>');
+        }
+
+        // ===== UX Enhancement: Improved Empty State =====
+        function renderEmptyState(type = 'default') {
+            const messages = {
+                default: {
+                    icon: '📄',
+                    title: '문서가 없습니다',
+                    description: '새 문서를 작성하여 시작해보세요.',
+                    showAction: true
+                },
+                search: {
+                    icon: '🔍',
+                    title: '검색 결과가 없습니다',
+                    description: '다른 검색어를 입력하거나 필터를 조정해보세요.',
+                    showAction: false
+                },
+                filter: {
+                    icon: '📅',
+                    title: '필터 조건에 맞는 문서가 없습니다',
+                    description: '날짜 범위나 카테고리를 변경해보세요.',
+                    showAction: false
+                }
+            };
+
+            const config = messages[type] || messages.default;
+            const actionHtml = config.showAction
+                ? `<div class="empty-state-actions">
+                     <button class="btn btn-primary" onclick="openModal()">+ 새 문서 작성</button>
+                   </div>`
+                : '';
+
+            return `
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-state-icon">${config.icon}</div>
+                    <h3>${config.title}</h3>
+                    <p>${config.description}</p>
+                    ${actionHtml}
+                </div>
+            `;
+        }
+
+        // --- Performance: Search index cache ---
+        // Maps doc.id to {titleLower, contentLower} so toLowerCase() is called
+        // once per document change, not once per keystroke per document.
+        let searchIndex = new Map();
+
+        function buildSearchIndex() {
+            searchIndex.clear();
+            documents.forEach(doc => {
+                searchIndex.set(doc.id, {
+                    titleLower: (doc.title || '').toLowerCase(),
+                    contentLower: (doc.content || '').toLowerCase()
+                });
+            });
+        }
+
+        function updateSearchIndexEntry(doc) {
+            searchIndex.set(doc.id, {
+                titleLower: (doc.title || '').toLowerCase(),
+                contentLower: (doc.content || '').toLowerCase()
+            });
+        }
+
+        function removeSearchIndexEntry(id) {
+            searchIndex.delete(id);
+        }
+
+        // --- Performance: Debounce utility ---
+        function debounce(fn, delay) {
+            let timer = null;
+            return function(...args) {
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => { fn.apply(this, args); }, delay);
+            };
+        }
+
+        // Debounced version of filterDocuments for search input (250ms delay)
+        const debouncedFilter = debounce(() => { filterDocuments(); }, 250);
+
+        // --- Performance: Pagination state ---
+        const PAGE_SIZE = 30;
+        let currentPage = 1;
+        let lastFilteredDocs = [];
+
+        // --- Performance: Category diff state ---
+        let previousCategoryState = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDocuments();
+            renderAll();
+            setDefaultDates();
+        });
+
+        // Load documents from localStorage
+        function loadDocuments() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            documents = stored ? JSON.parse(stored) : [];
+            buildSearchIndex();
+        }
+
+        // Save documents to localStorage with quota error handling
+        function saveToStorage() {
+            try {
+                const data = JSON.stringify(documents);
+                localStorage.setItem(STORAGE_KEY, data);
+                return true;
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+                    // Calculate current usage for user feedback
+                    const usage = getStorageUsage();
+                    showToast(
+                        `저장 실패: 브라우저 저장 공간이 부족합니다. ` +
+                        `현재 사용량: ${usage}. ` +
+                        `불필요한 문서나 이미지를 삭제한 후 다시 시도하세요.`,
+                        'error'
+                    );
+                } else {
+                    showToast('저장 중 알 수 없는 오류가 발생했습니다: ' + e.message, 'error');
+                }
+                return false;
+            }
+        }
+
+        // Calculate current localStorage usage for this app
+        function getStorageUsage() {
+            try {
+                const data = localStorage.getItem(STORAGE_KEY) || '';
+                const bytes = new Blob([data]).size;
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+            } catch (e) {
+                return '측정 불가';
+            }
+        }
+
+        // Set default dates for filter
+        function setDefaultDates() {
+            const today = new Date();
+            document.getElementById('endDate').value = formatDate(today);
+        }
+
+        // Format date to YYYY-MM-DD
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Format date for display
+        function formatDisplayDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Generate unique ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Render all components
+        function renderAll() {
+            renderCategories();
+            filterDocuments();
+            updateStats();
+            updateCategoryOptions();
+        }
+
+        // Get unique categories
+        function getCategories() {
+            const categories = {};
+            documents.forEach(doc => {
+                const cat = doc.category || '미분류';
+                categories[cat] = (categories[cat] || 0) + 1;
+            });
+            return categories;
+        }
+
+        // Render category list with diff-based updates
+        // Only rebuilds the DOM when category data actually changes.
+        function renderCategories() {
+            const categories = getCategories();
+            const list = document.getElementById('categoryList');
+
+            // Build new state snapshot
+            const sortedEntries = Object.entries(categories).sort((a, b) => a[0].localeCompare(b[0]));
+            const newState = {
+                total: documents.length,
+                active: currentCategory,
+                entries: sortedEntries
+            };
+
+            // Check if state has changed from previous render
+            const newStateKey = JSON.stringify(newState);
+            if (previousCategoryState === newStateKey) {
+                return; // No changes, skip DOM update entirely
+            }
+            previousCategoryState = newStateKey;
+
+            // State changed -- update DOM using DocumentFragment
+            const fragment = document.createDocumentFragment();
+
+            // ===== UX Enhancement: Keyboard Navigation for Categories =====
+            const createCategoryItem = (category, name, count, isActive) => {
+                const li = document.createElement('li');
+                li.className = isActive ? 'active' : '';
+                li.dataset.category = category;
+                li.setAttribute('role', 'option');
+                li.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                li.setAttribute('tabindex', isActive ? '0' : '-1');
+                li.onclick = () => setCategory(category);
+
+                // Keyboard support for categories
+                li.onkeydown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setCategory(category);
+                    } else if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        const next = li.nextElementSibling;
+                        if (next) next.focus();
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        const prev = li.previousElementSibling;
+                        if (prev) prev.focus();
+                    }
+                };
+
+                li.innerHTML = `<span>${escapeHtml(name)}</span><span class="category-count">${count}</span>`;
+                return li;
+            };
+
+            // "All" item
+            const allLi = createCategoryItem('all', '전체', documents.length, currentCategory === 'all');
+            fragment.appendChild(allLi);
+
+            sortedEntries.forEach(([name, count]) => {
+                const li = createCategoryItem(name, name, count, currentCategory === name);
+                fragment.appendChild(li);
+            });
+
+            list.innerHTML = '';
+            list.appendChild(fragment);
+        }
+
+        // Update category options in datalist
+        function updateCategoryOptions() {
+            const categories = Object.keys(getCategories());
+            const datalist = document.getElementById('categoryOptions');
+            datalist.innerHTML = categories.map(c => `<option value="${c}">`).join('');
+        }
+
+        // Set current category filter
+        function setCategory(category) {
+            currentCategory = category;
+            renderCategories();
+            filterDocuments();
+        }
+
+        // Filter and render documents
+        function filterDocuments() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            let filtered = documents.filter(doc => {
+                // Category filter
+                if (currentCategory !== 'all') {
+                    const docCat = doc.category || '미분류';
+                    if (docCat !== currentCategory) return false;
+                }
+
+                // Search filter -- uses pre-computed search index (no toLowerCase per call)
+                if (searchTerm) {
+                    const idx = searchIndex.get(doc.id);
+                    if (idx) {
+                        if (!idx.titleLower.includes(searchTerm) && !idx.contentLower.includes(searchTerm)) return false;
+                    } else {
+                        // Fallback for docs not yet indexed
+                        const titleMatch = (doc.title || '').toLowerCase().includes(searchTerm);
+                        const contentMatch = (doc.content || '').toLowerCase().includes(searchTerm);
+                        if (!titleMatch && !contentMatch) return false;
+                    }
+                }
+
+                // Date filter
+                const docDate = doc.createdAt.split('T')[0];
+                if (startDate && docDate < startDate) return false;
+                if (endDate && docDate > endDate) return false;
+
+                return true;
+            });
+
+            // Sort by date (newest first)
+            filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            // Store for pagination
+            lastFilteredDocs = filtered;
+            currentPage = 1;
+
+            renderDocuments(filtered);
+            if (currentView === 'calendar') {
+                renderCalendar();
+            }
+        }
+
+        // Render document cards with pagination and DocumentFragment
+        function renderDocuments(docs) {
+            const grid = document.getElementById('gridView');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            // ===== UX Enhancement: Improved Empty States =====
+            if (docs.length === 0) {
+                let emptyType = 'default';
+                if (searchTerm) {
+                    emptyType = 'search';
+                } else if (document.getElementById('startDate').value || document.getElementById('endDate').value || currentCategory !== 'all') {
+                    emptyType = 'filter';
+                }
+                grid.innerHTML = renderEmptyState(emptyType);
+                return;
+            }
+
+            // Pagination: only render current page
+            const totalPages = Math.ceil(docs.length / PAGE_SIZE);
+            const startIdx = (currentPage - 1) * PAGE_SIZE;
+            const pageDocs = docs.slice(startIdx, startIdx + PAGE_SIZE);
+
+            // Use DocumentFragment to batch DOM insertions
+            const fragment = document.createDocumentFragment();
+
+            pageDocs.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = 'document-card' + (doc.status === 'important' ? ' selected' : '');
+                card.setAttribute('role', 'listitem');
+                card.setAttribute('tabindex', '0');
+                card.onclick = () => viewDocument(doc.id);
+
+                // Keyboard support for document cards
+                card.onkeydown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        viewDocument(doc.id);
+                    }
+                };
+
+                const imageCountHtml = (doc.images && doc.images.length > 0)
+                    ? `<span class="image-count-badge" aria-label="${doc.images.length}개의 이미지">🖼️ ${doc.images.length}</span>`
+                    : '';
+
+                // ===== UX Enhancement: Search Highlighting =====
+                const titleHtml = searchTerm ? highlightText(doc.title, searchTerm) : escapeHtml(doc.title);
+                const previewText = doc.content.substring(0, 150);
+                const previewHtml = searchTerm ? highlightText(previewText, searchTerm) : escapeHtml(previewText);
+
+                card.innerHTML = `
+                    <div class="document-header">
+                        <div class="document-title">
+                            ${titleHtml}
+                            ${imageCountHtml}
+                        </div>
+                        <span class="document-category">${escapeHtml(doc.category || '미분류')}</span>
+                    </div>
+                    <div class="document-preview">${previewHtml}</div>
+                    <div class="document-meta">
+                        <span>${formatDisplayDate(doc.createdAt)}</span>
+                        <div class="document-actions">
+                            <button class="btn btn-secondary btn-sm doc-edit-btn tooltip" data-tooltip="문서 수정" data-id="${doc.id}" aria-label="문서 수정">수정</button>
+                            <button class="btn btn-danger btn-sm doc-delete-btn tooltip" data-tooltip="문서 삭제" data-id="${doc.id}" aria-label="문서 삭제">삭제</button>
+                        </div>
+                    </div>
+                `;
+
+                fragment.appendChild(card);
+            });
+
+            // Pagination controls
+            if (totalPages > 1) {
+                const paginationDiv = document.createElement('div');
+                paginationDiv.style.cssText = 'grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 15px 0;';
+
+                let paginationHtml = '';
+                if (currentPage > 1) {
+                    paginationHtml += `<button class="btn btn-secondary btn-sm" onclick="goToPage(${currentPage - 1})">이전</button>`;
+                }
+                // Show page numbers with ellipsis for large ranges
+                const maxVisible = 7;
+                let startP = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                let endP = Math.min(totalPages, startP + maxVisible - 1);
+                if (endP - startP < maxVisible - 1) startP = Math.max(1, endP - maxVisible + 1);
+
+                if (startP > 1) paginationHtml += `<button class="btn btn-secondary btn-sm" onclick="goToPage(1)">1</button>`;
+                if (startP > 2) paginationHtml += `<span style="color: var(--text-light);">...</span>`;
+
+                for (let p = startP; p <= endP; p++) {
+                    if (p === currentPage) {
+                        paginationHtml += `<button class="btn btn-primary btn-sm" disabled>${p}</button>`;
+                    } else {
+                        paginationHtml += `<button class="btn btn-secondary btn-sm" onclick="goToPage(${p})">${p}</button>`;
+                    }
+                }
+
+                if (endP < totalPages - 1) paginationHtml += `<span style="color: var(--text-light);">...</span>`;
+                if (endP < totalPages) paginationHtml += `<button class="btn btn-secondary btn-sm" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+
+                if (currentPage < totalPages) {
+                    paginationHtml += `<button class="btn btn-secondary btn-sm" onclick="goToPage(${currentPage + 1})">다음</button>`;
+                }
+                paginationHtml += `<span style="margin-left: 10px; color: var(--text-light); font-size: 12px;">(총 ${docs.length}건)</span>`;
+
+                paginationDiv.innerHTML = paginationHtml;
+                fragment.appendChild(paginationDiv);
+            }
+
+            grid.innerHTML = '';
+            grid.appendChild(fragment);
+        }
+
+        // Event delegation: single persistent listener on grid for edit/delete buttons
+        // Registered once at initialization, not per render cycle
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('gridView').addEventListener('click', (e) => {
+                const editBtn = e.target.closest('.doc-edit-btn');
+                const deleteBtn = e.target.closest('.doc-delete-btn');
+                if (editBtn) {
+                    e.stopPropagation();
+                    editDocument(editBtn.dataset.id);
+                } else if (deleteBtn) {
+                    e.stopPropagation();
+                    deleteDocument(deleteBtn.dataset.id);
+                }
+            });
+        });
+
+        function goToPage(page) {
+            currentPage = page;
+            renderDocuments(lastFilteredDocs);
+            // Scroll to top of grid
+            document.getElementById('gridView').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalDocs').textContent = documents.length;
+            document.getElementById('totalCategories').textContent = Object.keys(getCategories()).length;
+        }
+
+        // Open document modal for new document
+        function openModal() {
+            document.getElementById('documentId').value = '';
+            document.getElementById('modalTitle').textContent = '새 문서 작성';
+            document.getElementById('docTitle').value = '';
+            document.getElementById('docCategory').value = '';
+            document.getElementById('docDate').value = formatDate(new Date());
+            document.getElementById('docStatus').value = 'active';
+            document.getElementById('docContent').value = '';
+            currentImages = [];
+            currentInlineImages = {};
+            inlineImageCounter = 0;
+            renderImagePreviews();
+            renderInlineImagePreviews();
+            updateWordCount();
+
+            const modal = document.getElementById('documentModal');
+            modal.classList.add('active');
+
+            // ===== UX Enhancement: Focus Trap =====
+            setupFocusTrap(modal);
+
+            // Focus on first input
+            setTimeout(() => {
+                document.getElementById('docTitle').focus();
+            }, 100);
+        }
+
+        // Close document modal
+        function closeModal() {
+            document.getElementById('documentModal').classList.remove('active');
+        }
+
+        // Edit document
+        function editDocument(id) {
+            const doc = documents.find(d => d.id === id);
+            if (!doc) return;
+
+            document.getElementById('documentId').value = doc.id;
+            document.getElementById('modalTitle').textContent = '문서 수정';
+            document.getElementById('docTitle').value = doc.title;
+            document.getElementById('docCategory').value = doc.category || '';
+            document.getElementById('docDate').value = doc.createdAt.split('T')[0];
+            document.getElementById('docStatus').value = doc.status || 'active';
+            document.getElementById('docContent').value = doc.content;
+            currentImages = doc.images ? [...doc.images] : [];
+            currentInlineImages = doc.inlineImages ? {...doc.inlineImages} : {};
+            // Find highest inline image number
+            inlineImageCounter = 0;
+            Object.keys(currentInlineImages).forEach(key => {
+                const num = parseInt(key.replace('IMG', ''));
+                if (num > inlineImageCounter) inlineImageCounter = num;
+            });
+            renderImagePreviews();
+            renderInlineImagePreviews();
+            updateWordCount();
+            document.getElementById('documentModal').classList.add('active');
+            closeViewModal();
+        }
+
+        // Save document
+        async function saveDocument() {
+            const id = document.getElementById('documentId').value;
+            const title = document.getElementById('docTitle').value.trim();
+            const category = document.getElementById('docCategory').value.trim();
+            const dateValue = document.getElementById('docDate').value;
+            const status = document.getElementById('docStatus').value;
+            const content = document.getElementById('docContent').value;
+
+            if (!title) {
+                showToast('제목을 입력해주세요.', 'error');
+                document.getElementById('docTitle').focus();
+                return;
+            }
+
+            // ===== UX Enhancement: Loading State =====
+            showLoading('문서 저장 중...');
+
+            // Simulate async operation for UX feedback
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            const now = new Date().toISOString();
+
+            if (id) {
+                // Update existing
+                const index = documents.findIndex(d => d.id === id);
+                if (index !== -1) {
+                    documents[index] = {
+                        ...documents[index],
+                        title,
+                        category,
+                        content,
+                        status,
+                        images: currentImages,
+                        inlineImages: currentInlineImages,
+                        createdAt: dateValue ? new Date(dateValue).toISOString() : documents[index].createdAt,
+                        updatedAt: now
+                    };
+                    updateSearchIndexEntry(documents[index]);
+                    showToast('문서가 수정되었습니다.', 'success');
+                }
+            } else {
+                // Create new
+                const newDoc = {
+                    id: generateId(),
+                    title,
+                    category,
+                    content,
+                    status,
+                    images: currentImages,
+                    inlineImages: currentInlineImages,
+                    createdAt: dateValue ? new Date(dateValue).toISOString() : now,
+                    updatedAt: now
+                };
+                documents.push(newDoc);
+                updateSearchIndexEntry(newDoc);
+                showToast('새 문서가 생성되었습니다.', 'success');
+            }
+
+            if (!saveToStorage()) {
+                // Storage save failed (quota exceeded). Revert in-memory change.
+                // Reload from storage to get consistent state.
+                loadDocuments();
+                renderAll();
+                hideLoading();
+                return;
+            }
+
+            hideLoading();
+            closeModal();
+            renderAll();
+        }
+
+        // Delete document
+        async function deleteDocument(id) {
+            // ===== UX Enhancement: Custom Confirm Dialog =====
+            const confirmed = await customConfirm(
+                '이 문서를 삭제하시겠습니까? 삭제된 문서는 복구할 수 없습니다.',
+                '문서 삭제 확인'
+            );
+
+            if (!confirmed) return;
+
+            showLoading('문서 삭제 중...');
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            documents = documents.filter(d => d.id !== id);
+            removeSearchIndexEntry(id);
+            saveToStorage();
+            renderAll();
+
+            hideLoading();
+            showToast('문서가 삭제되었습니다.', 'success');
+        }
+
+        // View document
+        function viewDocument(id) {
+            const doc = documents.find(d => d.id === id);
+            if (!doc) return;
+
+            currentViewDocId = id;
+            originalContent = doc.content; // Store for find functionality
+            document.getElementById('viewTitle').textContent = doc.title;
+            document.getElementById('viewCategory').textContent = doc.category || '미분류';
+            document.getElementById('viewMeta').textContent = `작성: ${formatDisplayDate(doc.createdAt)}${doc.updatedAt !== doc.createdAt ? ' | 수정: ' + formatDisplayDate(doc.updatedAt) : ''}`;
+
+            // Render content with inline images
+            const contentWithImages = renderContentWithInlineImages(doc.content, doc.inlineImages || {});
+            document.getElementById('viewContent').innerHTML = contentWithImages;
+
+            document.getElementById('findInput').value = '';
+            document.getElementById('findCount').textContent = '0 / 0';
+            findMatches = [];
+            currentFindIndex = -1;
+
+            // Display attached images
+            renderViewImages(doc.images || []);
+
+            const modal = document.getElementById('viewModal');
+            modal.classList.add('active');
+
+            // ===== UX Enhancement: Focus Trap =====
+            setupFocusTrap(modal);
+        }
+
+        // Render content with inline images
+        function renderContentWithInlineImages(content, inlineImages) {
+            if (!content) return '';
+
+            let html = escapeHtml(content);
+
+            // Replace image markers with actual images
+            // Pattern: [[IMG1]], [[IMG2]], etc.
+            html = html.replace(/\[\[IMG(\d+)\]\]/g, (match, num) => {
+                const key = 'IMG' + num;
+                if (inlineImages[key]) {
+                    const imgIndex = Object.keys(inlineImages).indexOf(key);
+                    return `<img src="${inlineImages[key]}" class="view-inline-image" onclick="openInlineImageLightbox(${imgIndex}, '${currentViewDocId}')" alt="삽입 이미지 ${num}">`;
+                }
+                return match;
+            });
+
+            return html;
+        }
+
+        // Open lightbox for inline images
+        function openInlineImageLightbox(index, docId) {
+            const doc = documents.find(d => d.id === docId);
+            if (!doc || !doc.inlineImages) return;
+
+            lightboxImages = Object.entries(doc.inlineImages).map(([key, data]) => ({
+                id: key,
+                data: data,
+                name: '삽입 이미지'
+            }));
+            lightboxIndex = index;
+            document.getElementById('lightboxImage').src = lightboxImages[index].data;
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        // Close view modal
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('active');
+            currentViewDocId = null;
+            clearFind();
+        }
+
+        // Find functionality
+        let findMatches = [];
+        let currentFindIndex = -1;
+        let originalContent = '';
+
+        function performFind() {
+            const searchText = document.getElementById('findInput').value;
+            const contentEl = document.getElementById('viewContent');
+            const doc = documents.find(d => d.id === currentViewDocId);
+
+            // Reset to original content first (with inline images)
+            if (originalContent) {
+                contentEl.innerHTML = renderContentWithInlineImages(originalContent, doc?.inlineImages || {});
+            }
+
+            findMatches = [];
+            currentFindIndex = -1;
+
+            if (!searchText || searchText.length === 0) {
+                document.getElementById('findCount').textContent = '0 / 0';
+                return;
+            }
+
+            const content = originalContent;
+            const regex = new RegExp(escapeRegex(searchText), 'gi');
+            let match;
+            let lastIndex = 0;
+            let resultHtml = '';
+            let matchIndex = 0;
+
+            while ((match = regex.exec(content)) !== null) {
+                // Add text before match (with inline image rendering)
+                const beforeText = content.substring(lastIndex, match.index);
+                resultHtml += renderContentWithInlineImages(beforeText, doc?.inlineImages || {});
+                // Add highlighted match
+                resultHtml += `<span class="highlight" data-match-index="${matchIndex}">${escapeHtml(match[0])}</span>`;
+                lastIndex = regex.lastIndex;
+                findMatches.push(matchIndex);
+                matchIndex++;
+            }
+
+            // Add remaining text (with inline image rendering)
+            const afterText = content.substring(lastIndex);
+            resultHtml += renderContentWithInlineImages(afterText, doc?.inlineImages || {});
+
+            contentEl.innerHTML = resultHtml;
+
+            if (findMatches.length > 0) {
+                currentFindIndex = 0;
+                highlightCurrentMatch();
+            }
+
+            updateFindCount();
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function highlightCurrentMatch() {
+            // Remove current highlight from all
+            document.querySelectorAll('.highlight.current').forEach(el => {
+                el.classList.remove('current');
+            });
+
+            if (currentFindIndex >= 0 && findMatches.length > 0) {
+                const currentEl = document.querySelector(`[data-match-index="${currentFindIndex}"]`);
+                if (currentEl) {
+                    currentEl.classList.add('current');
+                    currentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        function findNext() {
+            if (findMatches.length === 0) return;
+            currentFindIndex = (currentFindIndex + 1) % findMatches.length;
+            highlightCurrentMatch();
+            updateFindCount();
+        }
+
+        function findPrev() {
+            if (findMatches.length === 0) return;
+            currentFindIndex = (currentFindIndex - 1 + findMatches.length) % findMatches.length;
+            highlightCurrentMatch();
+            updateFindCount();
+        }
+
+        function updateFindCount() {
+            const countEl = document.getElementById('findCount');
+            if (findMatches.length === 0) {
+                countEl.textContent = '0 / 0';
+            } else {
+                countEl.textContent = `${currentFindIndex + 1} / ${findMatches.length}`;
+            }
+        }
+
+        function clearFind() {
+            document.getElementById('findInput').value = '';
+            findMatches = [];
+            currentFindIndex = -1;
+            document.getElementById('findCount').textContent = '0 / 0';
+
+            // Restore original content with inline images
+            if (originalContent) {
+                const doc = documents.find(d => d.id === currentViewDocId);
+                document.getElementById('viewContent').innerHTML = renderContentWithInlineImages(originalContent, doc?.inlineImages || {});
+            }
+        }
+
+        // Edit from view modal
+        function editFromView() {
+            if (currentViewDocId) {
+                editDocument(currentViewDocId);
+            }
+        }
+
+        // Delete from view modal
+        async function deleteFromView() {
+            if (currentViewDocId) {
+                await deleteDocument(currentViewDocId);
+                closeViewModal();
+            }
+        }
+
+        // Clear date filter
+        function clearDateFilter() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            filterDocuments();
+        }
+
+        // Update word count
+        function updateWordCount() {
+            const content = document.getElementById('docContent').value;
+            document.getElementById('wordCount').textContent = content.length;
+            document.getElementById('lineCount').textContent = content ? content.split('\n').length : 0;
+        }
+
+        // Show toast notification
+        function showToast(message, type = '') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Toggle dropdown menu -- fixed to prevent listener accumulation
+        // Uses a single global listener registered once, instead of adding a new
+        // listener per toggle call.
+        let activeDropdownId = null;
+
+        function toggleDropdown(id) {
+            const menu = document.getElementById(id);
+            const button = menu.previousElementSibling;
+
+            if (activeDropdownId === id && menu.classList.contains('active')) {
+                // Close currently open dropdown
+                menu.classList.remove('active');
+                activeDropdownId = null;
+
+                // ===== UX Enhancement: Update ARIA attribute =====
+                if (button) button.setAttribute('aria-expanded', 'false');
+            } else {
+                // Close any other open dropdown first
+                if (activeDropdownId) {
+                    const prev = document.getElementById(activeDropdownId);
+                    if (prev) {
+                        prev.classList.remove('active');
+                        const prevBtn = prev.previousElementSibling;
+                        if (prevBtn) prevBtn.setAttribute('aria-expanded', 'false');
+                    }
+                }
+                menu.classList.add('active');
+                activeDropdownId = id;
+
+                // ===== UX Enhancement: Update ARIA attribute =====
+                if (button) button.setAttribute('aria-expanded', 'true');
+            }
+        }
+
+        // Single global click listener for closing dropdowns (registered once)
+        document.addEventListener('click', (e) => {
+            if (!activeDropdownId) return;
+            const menu = document.getElementById(activeDropdownId);
+            if (!menu) return;
+            // Check if click is outside both the menu and its parent dropdown button
+            const dropdownParent = menu.closest('.dropdown');
+            if (!dropdownParent || !dropdownParent.contains(e.target)) {
+                menu.classList.remove('active');
+                activeDropdownId = null;
+            }
+        });
+
+        // Export data
+        async function exportData() {
+            // ===== UX Enhancement: Loading State and Better Feedback =====
+            showLoading('데이터 내보내기 중...');
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            try {
+                const data = JSON.stringify(documents, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `documents_backup_${formatDate(new Date())}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                hideLoading();
+                showToast(`${documents.length}개의 문서가 내보내기 되었습니다.`, 'success');
+            } catch (err) {
+                hideLoading();
+                showToast('데이터 내보내기 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // Import data
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // ===== UX Enhancement: Confirm before import =====
+            const confirmed = await customConfirm(
+                `파일 "${file.name}"을 가져오시겠습니까?\n중복되지 않는 문서만 추가됩니다.`,
+                '데이터 가져오기 확인'
+            );
+
+            if (!confirmed) {
+                event.target.value = '';
+                return;
+            }
+
+            showLoading('데이터 가져오는 중...');
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const importedDocs = JSON.parse(e.target.result);
+                    if (!Array.isArray(importedDocs)) {
+                        throw new Error('Invalid format');
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, 300));
+
+                    // Merge with existing (avoid duplicates by ID)
+                    const existingIds = new Set(documents.map(d => d.id));
+                    const newDocs = importedDocs.filter(d => !existingIds.has(d.id));
+                    documents = [...documents, ...newDocs];
+
+                    // Rebuild search index for newly imported docs
+                    newDocs.forEach(doc => updateSearchIndexEntry(doc));
+
+                    saveToStorage();
+                    renderAll();
+
+                    hideLoading();
+                    showToast(`${newDocs.length}개의 새로운 문서를 가져왔습니다.`, 'success');
+                } catch (err) {
+                    hideLoading();
+                    showToast('파일 형식이 올바르지 않습니다. JSON 파일을 확인해주세요.', 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Set view mode
+        function setView(view) {
+            currentView = view;
+            document.getElementById('gridView').style.display = view === 'grid' ? 'grid' : 'none';
+            document.getElementById('calendarView').style.display = view === 'calendar' ? 'block' : 'none';
+
+            const gridBtn = document.getElementById('gridViewBtn');
+            const calendarBtn = document.getElementById('calendarViewBtn');
+
+            gridBtn.classList.toggle('active', view === 'grid');
+            calendarBtn.classList.toggle('active', view === 'calendar');
+
+            // ===== UX Enhancement: Update ARIA pressed state =====
+            gridBtn.setAttribute('aria-pressed', view === 'grid' ? 'true' : 'false');
+            calendarBtn.setAttribute('aria-pressed', view === 'calendar' ? 'true' : 'false');
+
+            if (view === 'calendar') {
+                renderCalendar();
+            }
+        }
+
+        // Render calendar
+        function renderCalendar() {
+            const year = calendarDate.getFullYear();
+            const month = calendarDate.getMonth();
+
+            document.getElementById('calendarTitle').textContent = `${year}년 ${month + 1}월`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay();
+
+            // Get document counts by date
+            const docsByDate = {};
+            documents.forEach(doc => {
+                const date = doc.createdAt.split('T')[0];
+                docsByDate[date] = (docsByDate[date] || 0) + 1;
+            });
+
+            const today = formatDate(new Date());
+            let html = ['일', '월', '화', '수', '목', '금', '토'].map(d =>
+                `<div class="calendar-day-header">${d}</div>`
+            ).join('');
+
+            // Previous month days
+            const prevMonthLast = new Date(year, month, 0).getDate();
+            for (let i = startDay - 1; i >= 0; i--) {
+                html += `<div class="calendar-day other-month">${prevMonthLast - i}</div>`;
+            }
+
+            // Current month days
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = dateStr === today;
+                const hasDocs = docsByDate[dateStr];
+
+                html += `
+                    <div class="calendar-day ${isToday ? 'today' : ''} ${hasDocs ? 'has-docs' : ''}"
+                         onclick="filterByDate('${dateStr}')"
+                         title="${hasDocs ? hasDocs + '개의 문서' : ''}">
+                        ${day}
+                    </div>
+                `;
+            }
+
+            // Next month days
+            const remaining = (7 - ((startDay + lastDay.getDate()) % 7)) % 7;
+            for (let i = 1; i <= remaining; i++) {
+                html += `<div class="calendar-day other-month">${i}</div>`;
+            }
+
+            document.getElementById('calendarGrid').innerHTML = html;
+        }
+
+        // Filter by specific date
+        function filterByDate(dateStr) {
+            document.getElementById('startDate').value = dateStr;
+            document.getElementById('endDate').value = dateStr;
+            setView('grid');
+            filterDocuments();
+        }
+
+        // Calendar navigation
+        function prevMonth() {
+            calendarDate.setMonth(calendarDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            calendarDate.setMonth(calendarDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function goToday() {
+            calendarDate = new Date();
+            renderCalendar();
+        }
+
+        // Category manager
+        function openCategoryManager() {
+            const categories = getCategories();
+            let html = '';
+
+            Object.entries(categories).sort().forEach(([name, count]) => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
+                        <span>${escapeHtml(name)} <span style="color: var(--text-light);">(${count}개)</span></span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm" onclick="renameCategory('${escapeHtml(name)}')">이름 변경</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCategory('${escapeHtml(name)}')">삭제</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (!html) {
+                html = '<p style="padding: 20px; text-align: center; color: var(--text-light);">카테고리가 없습니다.</p>';
+            }
+
+            document.getElementById('categoryManagerList').innerHTML = html;
+            document.getElementById('categoryModal').classList.add('active');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('active');
+        }
+
+        function renameCategory(oldName) {
+            const newName = prompt('새 카테고리 이름:', oldName);
+            if (!newName || newName === oldName) return;
+
+            documents.forEach(doc => {
+                if (doc.category === oldName) {
+                    doc.category = newName;
+                }
+            });
+
+            saveToStorage();
+            renderAll();
+            openCategoryManager();
+            showToast('카테고리 이름이 변경되었습니다.', 'success');
+        }
+
+        function deleteCategory(name) {
+            if (!confirm(`"${name}" 카테고리의 모든 문서를 "미분류"로 변경하시겠습니까?`)) return;
+
+            documents.forEach(doc => {
+                if (doc.category === name) {
+                    doc.category = '';
+                }
+            });
+
+            saveToStorage();
+            renderAll();
+            openCategoryManager();
+            showToast('카테고리가 삭제되었습니다.');
+        }
+
+        // Inline image paste handling
+        function handlePaste(event) {
+            const items = event.clipboardData?.items;
+            if (!items) return;
+
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    event.preventDefault();
+                    const file = items[i].getAsFile();
+                    insertInlineImage(file);
+                    break;
+                }
+            }
+        }
+
+        async function insertInlineImage(file) {
+            const MAX_RAW_SIZE = 10 * 1024 * 1024; // 10MB raw limit
+            const MAX_DIMENSION = 1280;
+            const QUALITY = 0.8;
+
+            if (file.size > MAX_RAW_SIZE) {
+                showToast('이미지 크기가 너무 큽니다 (최대 10MB).', 'error');
+                return;
+            }
+
+            try {
+                const resizedData = await resizeImage(file, MAX_DIMENSION, MAX_DIMENSION, QUALITY);
+
+                inlineImageCounter++;
+                const marker = 'IMG' + inlineImageCounter;
+                currentInlineImages[marker] = resizedData;
+
+                // Insert marker at cursor position in textarea
+                const textarea = document.getElementById('docContent');
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                const markerText = `[[${marker}]]`;
+
+                textarea.value = text.substring(0, start) + markerText + text.substring(end);
+
+                // Move cursor after the marker
+                textarea.selectionStart = textarea.selectionEnd = start + markerText.length;
+                textarea.focus();
+
+                renderInlineImagePreviews();
+                updateWordCount();
+
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('이미지가 자동 리사이즈되어 본문에 삽입되었습니다.', 'success');
+                } else {
+                    showToast('이미지가 본문에 삽입되었습니다.', 'success');
+                }
+            } catch (err) {
+                showToast('이미지 처리 중 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        function renderInlineImagePreviews() {
+            const container = document.getElementById('inlineImagesPreview');
+            const list = document.getElementById('inlineImageList');
+            const keys = Object.keys(currentInlineImages);
+
+            if (keys.length === 0) {
+                container.classList.remove('has-images');
+                list.innerHTML = '';
+                return;
+            }
+
+            container.classList.add('has-images');
+            list.innerHTML = keys.map(key => `
+                <div class="inline-image-item">
+                    <img src="${currentInlineImages[key]}" alt="${key}">
+                    <span class="inline-img-label">[[${key}]]</span>
+                    <button class="remove-inline-img" onclick="removeInlineImage('${key}')">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function removeInlineImage(key) {
+            // Remove from storage
+            delete currentInlineImages[key];
+
+            // Remove marker from text
+            const textarea = document.getElementById('docContent');
+            textarea.value = textarea.value.replace(`[[${key}]]`, '');
+
+            renderInlineImagePreviews();
+            updateWordCount();
+        }
+
+        // Image handling functions
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            processImageFiles(files);
+            event.target.value = ''; // Reset input
+        }
+
+        // --- Performance: Image resizing via Canvas API ---
+        // Resizes an image to fit within maxWidth x maxHeight while preserving aspect ratio.
+        // Returns a Promise that resolves with the resized data URL.
+        function resizeImage(file, maxWidth, maxHeight, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = reject;
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onerror = reject;
+                    img.onload = () => {
+                        let { width, height } = img;
+
+                        // Only resize if exceeds limits
+                        if (width > maxWidth || height > maxHeight) {
+                            const ratio = Math.min(maxWidth / width, maxHeight / height);
+                            width = Math.round(width * ratio);
+                            height = Math.round(height * ratio);
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Use JPEG for photos (smaller), PNG for transparency
+                        const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                        const dataUrl = canvas.toDataURL(mimeType, quality);
+                        resolve(dataUrl);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function processImageFiles(files) {
+            const MAX_DIMENSION = 1280; // Max width or height in pixels
+            const QUALITY = 0.8; // JPEG compression quality (0-1)
+            const MAX_RAW_SIZE = 10 * 1024 * 1024; // Reject files above 10MB outright
+
+            // ===== UX Enhancement: Loading State for Image Processing =====
+            const fileArray = Array.from(files);
+            if (fileArray.length === 0) return;
+
+            showLoading(`이미지 처리 중... (0/${fileArray.length})`);
+            let processedCount = 0;
+
+            for (const file of fileArray) {
+                if (!file.type.startsWith('image/')) {
+                    showToast('이미지 파일만 업로드 가능합니다.', 'error');
+                    processedCount++;
+                    continue;
+                }
+
+                if (file.size > MAX_RAW_SIZE) {
+                    showToast(`${file.name}: 파일 크기가 너무 큽니다 (최대 10MB).`, 'error');
+                    processedCount++;
+                    continue;
+                }
+
+                try {
+                    const resized = await resizeImage(file, MAX_DIMENSION, MAX_DIMENSION, QUALITY);
+                    currentImages.push({
+                        id: generateId(),
+                        data: resized,
+                        name: file.name
+                    });
+                    renderImagePreviews();
+                    processedCount++;
+
+                    // Update loading text
+                    const loadingText = document.getElementById('loadingText');
+                    if (loadingText) {
+                        loadingText.textContent = `이미지 처리 중... (${processedCount}/${fileArray.length})`;
+                    }
+
+                    if (file.size > 2 * 1024 * 1024) {
+                        showToast(`${file.name}: 이미지가 자동으로 리사이즈되었습니다.`, 'success');
+                    }
+                } catch (err) {
+                    showToast(`${file.name}: 이미지 처리 중 오류가 발생했습니다.`, 'error');
+                    processedCount++;
+                }
+            }
+
+            hideLoading();
+            if (processedCount > 0) {
+                showToast(`${processedCount}개의 이미지가 추가되었습니다.`, 'success');
+            }
+        }
+
+        function renderImagePreviews() {
+            const grid = document.getElementById('imagePreviewGrid');
+            if (currentImages.length === 0) {
+                grid.innerHTML = '';
+                return;
+            }
+
+            grid.innerHTML = currentImages.map((img, index) => `
+                <div class="image-preview-item">
+                    <img src="${img.data}" alt="${escapeHtml(img.name)}" onclick="openLightboxFromEdit(${index})">
+                    <button class="remove-image" onclick="removeImage('${img.id}')">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function removeImage(imageId) {
+            currentImages = currentImages.filter(img => img.id !== imageId);
+            renderImagePreviews();
+        }
+
+        function renderViewImages(images) {
+            const grid = document.getElementById('viewImagesGrid');
+            lightboxImages = images;
+
+            if (!images || images.length === 0) {
+                grid.style.display = 'none';
+                grid.innerHTML = '';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            grid.innerHTML = images.map((img, index) => `
+                <div class="view-image-item" onclick="openLightbox(${index})">
+                    <img src="${img.data}" alt="${escapeHtml(img.name || '이미지')}">
+                </div>
+            `).join('');
+        }
+
+        function openLightbox(index) {
+            lightboxIndex = index;
+            document.getElementById('lightboxImage').src = lightboxImages[index].data;
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        function openLightboxFromEdit(index) {
+            lightboxImages = currentImages;
+            openLightbox(index);
+        }
+
+        function closeLightbox(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
+        function lightboxPrev() {
+            lightboxIndex = (lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+            document.getElementById('lightboxImage').src = lightboxImages[lightboxIndex].data;
+        }
+
+        function lightboxNext() {
+            lightboxIndex = (lightboxIndex + 1) % lightboxImages.length;
+            document.getElementById('lightboxImage').src = lightboxImages[lightboxIndex].data;
+        }
+
+        // Drag and drop for images
+        const uploadArea = document.getElementById('imageUploadArea');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            processImageFiles(files);
+        });
+
+        // ===== UX Enhancement: Keyboard Accessibility for Image Upload =====
+        uploadArea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('imageInput').click();
+            }
+        });
+
+        // Paste event for inline images in textarea
+        document.getElementById('docContent').addEventListener('paste', handlePaste);
+
+        // Date filter listeners
+        document.getElementById('startDate').addEventListener('change', filterDocuments);
+        document.getElementById('endDate').addEventListener('change', filterDocuments);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Escape to close modals and lightbox
+            if (e.key === 'Escape') {
+                if (document.getElementById('lightbox').classList.contains('active')) {
+                    closeLightbox();
+                    return;
+                }
+                closeModal();
+                closeViewModal();
+                closeCategoryModal();
+            }
+            // Arrow keys for lightbox navigation
+            if (document.getElementById('lightbox').classList.contains('active')) {
+                if (e.key === 'ArrowLeft') lightboxPrev();
+                if (e.key === 'ArrowRight') lightboxNext();
+            }
+            // Ctrl+N for new document
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                openModal();
+            }
+            // Ctrl+S to save in modal
+            if (e.ctrlKey && e.key === 's') {
+                if (document.getElementById('documentModal').classList.contains('active')) {
+                    e.preventDefault();
+                    saveDocument();
+                }
+            }
+            // Ctrl+F for find in view modal
+            if (e.ctrlKey && e.key === 'f') {
+                if (document.getElementById('viewModal').classList.contains('active')) {
+                    e.preventDefault();
+                    document.getElementById('findInput').focus();
+                    document.getElementById('findInput').select();
+                }
+            }
+        });
+
+        // Find input keyboard handling
+        document.getElementById('findInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    findPrev();
+                } else {
+                    findNext();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
