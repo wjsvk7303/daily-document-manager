@@ -1201,3 +1201,147 @@
         .spa-container .empty-state-actions {
             margin-top: 20px;
         }
+
+        /* ===== Mobile Responsive Enhancements ===== */
+
+        /* Small tablets and large phones */
+        @media (max-width: 600px) {
+            .spa-container .container {
+                padding: 10px;
+            }
+
+            .spa-container header {
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 12px;
+            }
+
+            .spa-container header h1 {
+                font-size: 1.2rem;
+                margin-bottom: 8px;
+            }
+
+            .spa-container .header-controls {
+                gap: 6px;
+            }
+
+            .spa-container .header-controls .stat-item {
+                font-size: 12px;
+            }
+
+            .spa-container .sidebar {
+                position: static;
+                padding: 15px;
+                border-radius: 8px;
+            }
+
+            .spa-container .documents-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .spa-container .document-card {
+                padding: 15px;
+                border-radius: 8px;
+            }
+
+            .spa-container .document-card:hover {
+                transform: none;
+            }
+
+            .spa-container .toolbar {
+                gap: 8px;
+            }
+
+            .spa-container .toolbar .btn {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            .spa-container .modal-overlay {
+                padding: 10px;
+            }
+
+            .spa-container .modal {
+                border-radius: 12px;
+                max-height: 95vh;
+            }
+
+            .spa-container .modal-header {
+                padding: 15px;
+            }
+
+            .spa-container .modal-body {
+                padding: 15px;
+            }
+
+            .spa-container .modal-footer {
+                padding: 15px;
+            }
+
+            .spa-container .calendar-grid {
+                gap: 2px;
+            }
+
+            .spa-container .calendar-day {
+                font-size: 12px;
+                min-height: 36px;
+            }
+
+            .spa-container .calendar-day-header {
+                font-size: 10px;
+                padding: 5px;
+            }
+
+            .spa-container .search-box {
+                flex-direction: column;
+            }
+
+            .spa-container .search-box input {
+                font-size: 16px;
+            }
+
+            .spa-container .view-images-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+
+            .spa-container .image-preview-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+
+            .spa-container textarea {
+                font-size: 16px;
+            }
+
+            .spa-container input,
+            .spa-container select {
+                font-size: 16px;
+            }
+
+            .spa-container .pagination {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+
+            .spa-container .pagination .btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+
+        /* Very small phones */
+        @media (max-width: 380px) {
+            .spa-container header h1 {
+                font-size: 1rem;
+            }
+
+            .spa-container .toolbar .btn {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+
+            .spa-container .calendar-day {
+                font-size: 11px;
+                min-height: 30px;
+            }
+        }

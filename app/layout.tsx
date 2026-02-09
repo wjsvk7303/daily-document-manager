@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import {
   ClerkProvider,
   SignInButton,
@@ -21,6 +21,12 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export const metadata: Metadata = {
   title: '일자별 문서 보관함',
   description: '문서를 날짜별로 체계적으로 관리하세요',
@@ -35,25 +41,25 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="ko">
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <header className="flex justify-between items-center px-6 h-16 border-b border-gray-200">
-            <Link href="/" className="font-bold text-lg text-[#4a90d9]">
+          <header className="flex justify-between items-center px-4 sm:px-6 h-14 sm:h-16 border-b border-gray-200">
+            <Link href="/" className="font-bold text-base sm:text-lg text-[#4a90d9] shrink-0">
               문서 보관함
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <SignedOut>
                 <SignInButton>
-                  <button className="text-sm font-medium cursor-pointer hover:text-[#4a90d9] transition-colors">
+                  <button className="text-xs sm:text-sm font-medium cursor-pointer hover:text-[#4a90d9] transition-colors">
                     로그인
                   </button>
                 </SignInButton>
                 <SignUpButton>
-                  <button className="bg-[#4a90d9] hover:bg-[#357abd] text-white rounded-lg font-medium text-sm h-9 px-4 cursor-pointer transition-colors">
+                  <button className="bg-[#4a90d9] hover:bg-[#357abd] text-white rounded-lg font-medium text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4 cursor-pointer transition-colors">
                     회원가입
                   </button>
                 </SignUpButton>
               </SignedOut>
               <SignedIn>
-                <Link href="/documents" className="text-sm font-medium hover:text-[#4a90d9] transition-colors">
+                <Link href="/documents" className="text-xs sm:text-sm font-medium hover:text-[#4a90d9] transition-colors">
                   내 문서
                 </Link>
                 <UserButton afterSignOutUrl="/" />
