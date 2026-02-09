@@ -54,3 +54,6 @@ nul
 
 # temp files
 index.html.b64
+
+# legacy SPA (extracted into app/documents/spa-*.ts)
+index.html
